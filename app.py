@@ -6,9 +6,7 @@ import re
 from io import BytesIO
 from datetime import time
 from openpyxl import load_workbook
-from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import get_column_letter
-from uuid import uuid4
 
 st.set_page_config(layout="wide")
 st.title("📋 Backpage ↔ DTS Cross Check")
@@ -147,21 +145,9 @@ if backpage_file and sf_file and dts_file:
                 df_dts.to_excel(writer, sheet_name="DTS", index=False)
 
             wb = load_workbook(output)
+
             for sheet in ["Backpage", "DTS"]:
                 ws = wb[sheet]
-                last_col = get_column_letter(ws.max_column)
-
-                table = Table(
-                    displayName=f"T_{sheet}_{uuid4().hex[:5]}",
-                    ref=f"A1:{last_col}{ws.max_row}"
-                )
-                table.tableStyleInfo = TableStyleInfo(
-                    name="TableStyleLight1",
-                    showRowStripes=False,
-                    showColumnStripes=False
-                )
-                ws.add_table(table)
-
                 for col in ws.columns:
                     width = max(len(str(c.value)) if c.value else 0 for c in col)
                     ws.column_dimensions[get_column_letter(col[0].column)].width = min(width + 2, 50)

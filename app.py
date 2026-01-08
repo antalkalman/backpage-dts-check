@@ -140,9 +140,13 @@ if backpage_file and sf_file and dts_file:
 
             # ---------- Excel output ----------
             output = BytesIO()
+
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
                 df_backpage.to_excel(writer, sheet_name="Backpage", index=False)
                 df_dts.to_excel(writer, sheet_name="DTS", index=False)
+
+            # IMPORTANT: rewind before reading
+            output.seek(0)
 
             wb = load_workbook(output)
 
@@ -152,7 +156,14 @@ if backpage_file and sf_file and dts_file:
                     width = max(len(str(c.value)) if c.value else 0 for c in col)
                     ws.column_dimensions[get_column_letter(col[0].column)].width = min(width + 2, 50)
 
+            # VERY IMPORTANT: clear buffer before saving again
+            output.seek(0)
+            output.truncate(0)
+
             wb.save(output)
+
+            # rewind again before download
+            output.seek(0)
 
             st.success("✅ Done")
 
